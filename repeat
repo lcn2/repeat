@@ -3,8 +3,8 @@
 # repeat - repeat a command a fixed number of times
 #
 # @(#) $Revision: 1.1 $
-# @(#) $Id: ifspace,v 1.1 2004/04/24 12:39:37 chongo Exp $
-# @(#) $Source: /usr/local/src/cmd/ifspace/RCS/ifspace,v $
+# @(#) $Id: repeat,v 1.1 2004/04/24 13:23:04 chongo Exp $
+# @(#) $Source: /usr/local/src/cmd/repeat/RCS/repeat,v $
 #
 # Copyright (c) 2004 by Landon Curt Noll.  All Rights Reserved.
 #
