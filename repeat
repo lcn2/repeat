@@ -1,12 +1,8 @@
-#!/bin/sh
+#!/usr/bin/env bash
 #
 # repeat - repeat a command a fixed number of times
 #
-# @(#) $Revision: 1.1 $
-# @(#) $Id: repeat,v 1.1 2004/04/24 13:23:04 chongo Exp $
-# @(#) $Source: /usr/local/src/cmd/repeat/RCS/repeat,v $
-#
-# Copyright (c) 2004 by Landon Curt Noll.  All Rights Reserved.
+# Copyright (c) 2004,2015,2023,2025 by Landon Curt Noll.  All Rights Reserved.
 #
 # Permission to use, copy, modify, and distribute this software and
 # its documentation for any purpose and without fee is hereby granted,
@@ -26,30 +22,197 @@
 # OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 # PERFORMANCE OF THIS SOFTWARE.
 #
-# chongo (Landon Curt Noll, http://www.isthe.com/chongo/index.html) /\oo/\
+# chongo (Landon Curt Noll) /\oo/\
 #
-# Share and enjoy! :-)
+# http://www.isthe.com/chongo/index.html
+# https://github.com/lcn2
+#
+# Share and enjoy!  :-)
 
-# parse args
+
+# setup
+#
+export VERSION="1.1.1 2025-03-26"
+NAME=$(basename "$0")
+export NAME
+#
+export V_FLAG=0
+#
+export NOOP=
+export DO_NOT_PROCESS=
+export SECS=0
+
+
+# usage
+#
+export USAGE="usage: $0 [-h] [-v level] [-V] [-n] [-N] [-s secs] count cmd [arg ...]
+
+    -h          print help message and exit
+    -v level    set verbosity level (def level: $V_FLAG)
+    -V          print version string and exit
+
+    -n          go thru the actions, but do not run any commands (def: do the action)
+    -N          do not process anything, just parse arguments (def: process something)
+
+    -s secs     sleep seconds between commands, may be a floating point number: (def: do not sleep)
+
+    count	    number of times to repeat command, 0 ==> repeat forever
+
+    cmd [arg ...]   command and optional args to repeat
+
+Exit codes:
+     0         all OK
+     1         some internal tool exited non-zero
+     2         -h and help string printed or -V and version string printed
+     3         command line error
+ >= 10         internal error
+
+$NAME version: $VERSION"
+
+
+# parse command line
+#
+while getopts :hv:VnNs: flag; do
+  case "$flag" in
+    h) echo "$USAGE"
+        exit 2
+        ;;
+    v) V_FLAG="$OPTARG"
+        ;;
+    V) echo "$VERSION"
+        exit 2
+        ;;
+    n) NOOP="-n"
+        ;;
+    N) DO_NOT_PROCESS="-N"
+        ;;
+    s) SECS="$OPTARG"
+        ;;
+    \?) echo "$0: ERROR: invalid option: -$OPTARG" 1>&2
+        echo 1>&2
+        echo "$USAGE" 1>&2
+        exit 3
+        ;;
+    :) echo "$0: ERROR: option -$OPTARG requires an argument" 1>&2
+        echo 1>&2
+        echo "$USAGE" 1>&2
+        exit 3
+        ;;
+    *) echo "$0: ERROR: unexpected value from getopts: $flag" 1>&2
+        echo 1>&2
+        echo "$USAGE" 1>&2
+        exit 3
+        ;;
+  esac
+done
+if [[ $V_FLAG -ge 1 ]]; then
+    echo "$0: debug[1]: debug level: $V_FLAG" 1>&2
+fi
+#
+# remove the options
+#
+shift $(( OPTIND - 1 ));
+#
+# verify arg count
 #
 if [[ $# -lt 2 ]]; then
-    echo "usage: $0 count cmd [arg ...]" 1>&2
-    exit 1
+    echo "$0: ERROR: expected at least 2 args, found: $#" 1>&2
+    echo "$USAGE" 1>&2
+    exit 3
 fi
-COUNT="$1"
-case "$COUNT" in
-[0-9]*) ;;
-*) echo "$0: count must be a number >= 0" 1>&2
-   exit 2 ;;
-esac
-
-# execute command until the count is 0
 #
-STATUS=0
+# parse args
+export TOTAL_COUNT="$1"
 shift
-while [[ "$COUNT" -gt 0 ]]; do
-    $@
-    STATUS="$?"
-    ((COUNT--))
+#
+if [[ ! $TOTAL_COUNT =~ ^[0-9]+$ ]]; then
+    echo "$0: ERROR: count must be an integer >= 0: $TOTAL_COUNT" 1>&2
+fi
+if [[ $TOTAL_COUNT -lt 0 ]]; then
+    echo "$0: ERROR: count must be >= 0: $TOTAL_COUNT" 1>&2
+fi
+
+
+# print running info if verbose
+#
+# If -v 3 or higher, print exported variables in order that they were exported.
+#
+if [[ $V_FLAG -ge 3 ]]; then
+    echo "$0: debug[3]: VERSION=$VERSION" 1>&2
+    echo "$0: debug[3]: NAME=$NAME" 1>&2
+    echo "$0: debug[3]: V_FLAG=$V_FLAG" 1>&2
+    echo "$0: debug[3]: NOOP=$NOOP" 1>&2
+    echo "$0: debug[3]: DO_NOT_PROCESS=$DO_NOT_PROCESS" 1>&2
+    echo "$0: debug[3]: SECS=$SECS" 1>&2
+fi
+if [[ $V_FLAG -ge 1 ]]; then
+    echo "$0: debug[1]: TOTAL_COUNT=$TOTAL_COUNT" 1>&2
+    echo "$0: debug[1]: command to be executed: $*" 1>&2
+fi
+
+
+# -N stops early before any processing is performed
+#
+if [[ -n $DO_NOT_PROCESS ]]; then
+    if [[ $V_FLAG -ge 3 ]]; then
+        echo "$0: debug[3]: arguments parsed, -N given, exiting 0" 1>&2
+    fi
+    exit 0
+fi
+
+
+# run command count times
+#
+export EXIT_CODE=0
+COUNT=1
+while [[ $TOTAL_COUNT -eq 0 || "$COUNT" -le $TOTAL_COUNT ]]; do
+
+    if [[ $V_FLAG -ge 3 ]]; then
+	if [[ $TOTAL_COUNT -eq 0 ]]; then
+	    echo "$0: debug[3]: count: $COUNT command: $*" 1>&2
+	else
+	    echo "$0: debug[3]: count: $COUNT of $TOTAL_COUNT command: $*" 1>&2
+	fi
+    fi
+    if [[ -z $NOOP ]]; then
+	"$@"
+	status="$?"
+    else
+	status="0"
+    fi
+    if [[ $status -ne 0 ]]; then
+	if [[ $V_FLAG -ge 1 ]]; then
+	    if [[ $TOTAL_COUNT -eq 0 ]]; then
+		echo "$0: debug[1]: count: $COUNT command: $* failed,  error: $status" 1>&2
+	    else
+		echo "$0: debug[1]: count: $COUNT of $TOTAL_COUNT command: $* failed,  error: $status" 1>&2
+	    fi
+	    if [[ $V_FLAG -ge 3 && $EXIT_CODE -ne $status ]]; then
+		echo "$0: debug[3]: set EXIT_CODE=$status" 1>&2
+	    fi
+	fi
+	EXIT_CODE="$status"
+    fi
+    ((COUNT++))
+
+    # sleep if -s secs and we have more commands to count
+    #
+    if [[ $TOTAL_COUNT -eq 0 || "$COUNT" -le $TOTAL_COUNT && $SECS -gt 0 ]]; then
+	if [[ $V_FLAG -ge 3 ]]; then
+	    echo "$0: debug[3]: sleep $SECS" 1>&2
+	fi
+	sleep -- "$SECS"
+    fi
 done
-exit "$STATUS"
+
+
+# All Done!!! All Done!!! -- Jessica Noll, Age 2
+#
+if [[ $V_FLAG -ge 1 ]]; then
+    if [[ $EXIT_CODE -ne 0 ]]; then
+	echo "$0: Warning: about to exit non-zero: $EXIT_CODE" 1>&2
+    elif [[ $V_FLAG -ge 3 ]]; then
+	echo "$0: debug[3]: about to exit $EXIT_CODE" 1>&2
+    fi
+fi
+exit "$EXIT_CODE"
