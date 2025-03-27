@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# repeat - repeat a command a fixed number of times
+# rpt - repeatedly execute a command
 #
 # Copyright (c) 2004,2015,2023,2025 by Landon Curt Noll.  All Rights Reserved.
 #
@@ -30,9 +30,12 @@
 # Share and enjoy!  :-)
 
 
+# HISTORICAL NOTE: Prior to version 1.1.2, this tool was only known as repeat
+
+
 # setup
 #
-export VERSION="1.1.1 2025-03-26"
+export VERSION="1.1.2 2025-03-26"
 NAME=$(basename "$0")
 export NAME
 #

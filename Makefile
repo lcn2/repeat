@@ -1,6 +1,6 @@
 #!/usr/bin/env make
 #
-# repeat - repeat a command a fixed number of times
+# rpt - repeatedly execute a command
 #
 # Copyright (c) 2004,2015,2023,2025 by Landon Curt Noll.  All Rights Reserved.
 #
@@ -55,7 +55,7 @@ V=@:
 
 DESTDIR= /usr/local/bin
 
-TARGETS= repeat
+TARGETS= rpt repeat
 
 
 ######################################
@@ -65,6 +65,9 @@ TARGETS= repeat
 all: ${TARGETS}
 	${V} echo DEBUG =-= $@ start =-=
 	${V} echo DEBUG =-= $@ end =-=
+
+repeat: rpt
+	${CP} -f rpt repeat
 
 
 #################################################
@@ -88,6 +91,7 @@ clean:
 
 clobber: clean
 	${V} echo DEBUG =-= $@ start =-=
+	${RM} -f repeat
 	${V} echo DEBUG =-= $@ end =-=
 
 install: all

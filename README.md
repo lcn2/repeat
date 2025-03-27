@@ -1,6 +1,8 @@
-# repear
+# rpt
 
-XXX
+repeatedly execute a command
+
+**NOTE**: Because `repeat` is a builtin for some shells, this tool installs as both `rpt` and `repeat`.
 
 
 # To install
@@ -16,26 +18,34 @@ sudo make install clobber
 Run date about once a second for 2 hours:
 
 ```sh
-/usr/local/bin/repeat -s 1 120 date
+/usr/local/bin/rpt -s 1 120 date
 ```
 
 Look at a log file, once per second, 100 times:
 
 ```sh
-/usr/local/bin/repeat -s 1 100 ls -l /var/log/messages
+/usr/local/bin/rpt -s 1 100 ls -l /var/log/messages
 ```
 
-Repeatedly compile a program:
+Repeatedly compile a program, forever:
 
 ```sh
-/usr/local/bin/repeat 0 cc prog.c -o prog
+/usr/local/bin/rpt 0 cc prog.c -o prog
 ```
+
+Use the `repeat` alias to repeatedly remove a file, one a minute, forever:
+
+```sh
+/usr/local/bin/repeat -s 60 0 rm -f /var/tmp/foo
+```
+
+
 
 
 # To use
 
 ```
-/usr/local/bin/repeat [-h] [-v level] [-V] [-n] [-N] [-s secs] count cmd [arg ...]
+/usr/local/bin/rpt [-h] [-v level] [-V] [-n] [-N] [-s secs] count cmd [arg ...]
 
     -h          print help message and exit
     -v level    set verbosity level (def level: 0)
@@ -63,4 +73,4 @@ repeat version: 1.1.1 2025-03-26
 
 # Reporting Security Issues
 
-To report a security issue, please visit "[Reporting Security Issues](https://github.com/lcn2/repeat/security/policy)".
+To report a security issue, please visit "[Reporting Security Issues](https://github.com/lcn2/rpt/security/policy)".
