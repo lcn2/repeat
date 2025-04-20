@@ -18,25 +18,25 @@ sudo make install clobber
 Run date about once a second for 2 hours:
 
 ```sh
-/usr/local/bin/rpt -s 1 120 date
+$ /usr/local/bin/rpt -s 1 120 date
 ```
 
 Look at a log file, once per second, 100 times:
 
 ```sh
-/usr/local/bin/rpt -s 1 100 ls -l /var/log/messages
+$ /usr/local/bin/rpt -s 1 100 ls -l /var/log/messages
 ```
 
 Repeatedly compile a program, forever:
 
 ```sh
-/usr/local/bin/rpt 0 cc prog.c -o prog
+$ /usr/local/bin/rpt 0 cc prog.c -o prog
 ```
 
 Use the `repeat` alias to repeatedly remove a file, one a minute, forever:
 
 ```sh
-/usr/local/bin/repeat -s 60 0 rm -f /var/tmp/foo
+$ /usr/local/bin/repeat -s 60 0 rm -f /var/tmp/foo
 ```
 
 
